@@ -10,6 +10,9 @@ app = Flask(__name__)
 HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API_TOKEN')
 
+if HUGGING_FACE_API_TOKEN is None:
+    raise Exception("HUGGING_FACE_API_TOKEN not found in environment variables.")
+
 headers = {
     "Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"
 }
