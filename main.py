@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
 from post_generator import generate_post
+from flask_cors import CORS,cross_origin
 
 app = Flask(__name__)
+CORS(app, support_credentials=True)
 
 @app.route('/', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def generate():
     data = request.json
     context_words = data.get('context_words', [])

@@ -3,12 +3,8 @@ import requests
 import os
 import time
 from dotenv import load_dotenv
-from flask_cors import CORS
 
 load_dotenv()
-app = Flask(__name__)
-CORS(app)
-
 
 HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API_TOKEN')
