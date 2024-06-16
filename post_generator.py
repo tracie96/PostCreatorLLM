@@ -1,10 +1,18 @@
 from flask import Flask, request, jsonify
-import openai
+import requests
 import os
+import time
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
+HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
+HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_API_TOKEN')
+
+headers = {
+    "Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"
+}
 
 
 def clean_text(text):
@@ -13,28 +21,38 @@ def clean_text(text):
 
 
 def generate_post(context_words, platform):
+    # Adjust the post length based on the platform
     if platform.lower() == 'twitter':
         max_length = 50  # Researched twitters text limit
     elif platform.lower() == 'instagram':
-        max_length = 200   # checked instagrams limit too
+        max_length = 200  # checked instagrams limit too
     else:
         max_length = 100
 
     prompt = " ".join(context_words)
 
-    response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=max_length,
-        n=1,
-        stop=None,
-        temperature=0.7
-    )
+    while True:
+        response = requests.post(
+            HUGGING_FACE_API_URL,
+            headers=headers,
+            json={
+                "inputs": prompt,
+                "parameters": {"max_length": max_length, "num_return_sequences": 1}
+            }
+        )
 
-    generated_text = response.choices[0].text
+        if response.status_code == 200:
+            break
+
+        if response.status_code == 503 and 'estimated_time' in response.json():
+            estimated_time = response.json()['estimated_time']
+            print(f"Model is loading, retrying in {estimated_time} seconds...")
+            time.sleep(estimated_time)
+        else:
+            raise Exception(f"Failed to generate text: {response.text}")
+
+    generated = response.json()
+    generated_text = generated[0]['generated_text']
 
     cleaned_text = clean_text(generated_text)
 
@@ -44,24 +62,3 @@ def generate_post(context_words, platform):
     return generated_text_with_hashtags
 
 
-@app.route('/')
-def index():
-    return "Text Generation API"
-
-
-@app.route('/generate', methods=['POST'])
-def generate():
-    data = request.json
-    context_words = data.get('context_words', [])
-    platform = data.get('platform', 'Generic')
-
-    try:
-        post = generate_post(context_words, platform)
-        return jsonify({"post": post})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
