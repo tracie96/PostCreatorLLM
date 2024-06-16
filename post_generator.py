@@ -22,9 +22,12 @@ def generate_post(context_words, platform):
 
     prompt = " ".join(context_words)
 
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
         max_tokens=max_length,
         n=1,
         stop=None,
