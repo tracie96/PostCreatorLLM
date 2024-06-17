@@ -14,9 +14,9 @@ def clean_text(text):
     return text
 def generate_post(context_words, platform):
     if platform.lower() == 'twitter':
-        max_length = 50  # add twitter's character limit constraint in tokens
+        max_length = 50  # added twitter's character limit constraint in tokens
     elif platform.lower() == 'instagram':
-        max_length = 200  # add instagram's character limit in tokens
+        max_length = 200  # added instagram's character limit in tokens
     else:
         max_length = 100
 
