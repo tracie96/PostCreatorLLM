@@ -12,8 +12,11 @@ def generate():
     context_words = data.get('context_words', [])
     platform = data.get('platform', 'Generic')
 
-    post = generate_post(context_words, platform)
-    return jsonify({"post": post})
+    try:
+        post = generate_post(context_words, platform)
+        return jsonify({"post": post})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 Flask~=3.0.3
 gunicorn
-python-dotenv
 requests
 flask_cors
+transformers~=4.41.2
